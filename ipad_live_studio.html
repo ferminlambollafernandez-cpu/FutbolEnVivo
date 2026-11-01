@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>iPad Live Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#151f30;--line:#29384d;--accent:#62d6b5;--muted:#9fb0c5}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#0b1220,#111d2e);color:#f5f7fb;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:1050px;margin:auto;padding:22px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:clamp(25px,5vw,36px);margin:0;letter-spacing:-.8px}.sub{color:var(--muted);margin:6px 0 0;font-size:14px}
+.pill{border:1px solid #315447;color:#9cf0d5;background:#15372f;padding:7px 11px;border-radius:99px;font-size:12px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.8fr);gap:16px}
+.panel{background:rgba(21,31,48,.94);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 14px 35px #0003}
+h2{font-size:17px;margin:0 0 12px}.stage{position:relative;background:#05090f;border-radius:13px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center;touch-action:none}
+video{width:100%;height:100%;object-fit:contain;display:none}
+#empty{color:#8495aa;text-align:center;padding:20px}#empty .cam{font-size:35px;display:block;margin-bottom:9px}
+#crop{position:absolute;left:12%;top:12%;width:76%;height:76%;border:2px solid var(--accent);box-shadow:0 0 0 999px #0008;display:none;touch-action:none}
+.handle{position:absolute;width:22px;height:22px;background:#fff;border:3px solid var(--accent);border-radius:5px;transform:translate(-50%,-50%);touch-action:none}
+.tl{left:0;top:0}.tr{left:100%;top:0}.bl{left:0;top:100%}.br{left:100%;top:100%}
+.row{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+button{border:0;border-radius:12px;padding:12px 15px;font-weight:650;background:#26364b;color:#f7f9fc;font-size:14px;cursor:pointer}
+button.primary{background:var(--accent);color:#06251e}button:disabled{opacity:.45;cursor:not-allowed}
+button:active{transform:scale(.98)}
+.note{font-size:13px;color:var(--muted);line-height:1.5;margin:12px 1px 0}
+.output{background:#05090f;border-radius:13px;aspect-ratio:16/9;overflow:hidden;display:grid;place-items:center}
+canvas{width:100%;height:100%;object-fit:contain}
+.status{font-size:13px;color:#b9c8d9;margin-top:10px;min-height:20px}
+.section{margin-top:16px}.small{font-size:12px;color:var(--muted)}
+@media(max-width:760px){.layout{grid-template-columns:1fr}main{padding:18px 12px 30px}.panel{padding:12px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><h1>iPad Live Studio</h1><p class="sub">Cámara, pantalla y recorte en vivo</p></div>
+ <span class="pill">VERSIÓN 1</span>
+</header>
+<div class="layout">
+ <section class="panel">
+  <h2>1. Fuente de imagen</h2>
+  <div class="stage" id="stage">
+   <div id="empty"><span class="cam">◉</span>Elegí Cámara o Pantalla para empezar</div>
+   <video id="video" autoplay playsinline muted></video>
+   <div id="crop">
+    <i class="handle tl" data-corner="tl"></i><i class="handle tr" data-corner="tr"></i>
+    <i class="handle bl" data-corner="bl"></i><i class="handle br" data-corner="br"></i>
+   </div>
+  </div>
+  <div class="row">
+   <button class="primary" id="camera">📷 Activar cámara</button>
+   <button id="screen">▣ Compartir pantalla</button>
+   <button id="flip" disabled>⇄ Cambiar cámara</button>
+   <button id="stop" disabled>Detener</button>
+  </div>
+  <p class="note">Arrastrá los cuatro cuadrados para elegir qué parte de la imagen querés mostrar. El recorte se actualiza en la vista previa de la derecha.</p>
+  <div class="status" id="status" role="status">Esperando que elijas una fuente.</div>
+ </section>
+ <section class="panel">
+  <h2>2. Vista previa recortada</h2>
+  <div class="output"><canvas id="out" width="1280" height="720"></canvas></div>
+  <div class="row">
+   <button id="reset" disabled>Restablecer recorte</button>
+   <button class="primary" id="photo" disabled>Guardar captura</button>
+  </div>
+  <div class="status" id="outputStatus">Acá aparece solamente el área seleccionada.</div>
+  <p class="note">Esta primera versión muestra el recorte dentro de la página. Todavía no envía el video a otro dispositivo; para eso hace falta agregar una conexión privada entre dispositivos.</p>
+ </section>
+</div>
+<div class="panel section">
+ <h2>Sobre el modo pantalla en iPad</h2>
+ <p class="note">La cámara normalmente funciona en Safari si autorizás el permiso. La captura de pantalla depende de la versión de iPadOS y de Safari: si el navegador no ofrece esa función, el botón te lo va a indicar. La página no activa cámara ni pantalla sin que vos lo pidas.</p>
+ <p class="small">Consejo: probá primero desde una dirección HTTPS (por ejemplo, GitHub Pages) y aceptá el permiso de cámara.</p>
+</div>
+</main>
+<script>
+const video=document.querySelector('#video'), stage=document.querySelector('#stage'), crop=document.querySelector('#crop');
+const empty=document.querySelector('#empty'), canvas=document.querySelector('#out'), ctx=canvas.getContext('2d');
+const status=document.querySelector('#status'), outputStatus=document.querySelector('#outputStatus');
+let stream=null, facing='environment', raf=0, dragging=null, rect={x:.12,y:.12,w:.76,h:.76};
+const $=id=>document.getElementById(id);
+function message(t){status.textContent=t}
+function setActive(on){$('stop').disabled=!on;$('flip').disabled=!on||!stream?.getVideoTracks()[0]?.getSettings().facingMode;$('reset').disabled=!on;$('photo').disabled=!on;crop.style.display=on?'block':'none';video.style.display=on?'block':'none';empty.style.display=on?'none':'block'}
+async function startCamera(){
+ stopStream();try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing}},audio:false});
+  await attach();$('flip').disabled=false;message('Cámara activa. Ajustá las esquinas del recorte.');
+ }catch(e){message('No se pudo abrir la cámara. Revisá los permisos de Safari y que la página use HTTPS.');}
+}
+async function startScreen(){
+ stopStream();
+ if(!navigator.mediaDevices?.getDisplayMedia){message('Este Safari/iPadOS no ofrece captura de pantalla desde esta página. Probá con un navegador o sistema compatible.');return}
+ try{stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});await attach();$('flip').disabled=true;message('Pantalla compartida. Ajustá el recorte.');stream.getVideoTracks()[0].addEventListener('ended',stopStream);}
+ catch(e){message('No se inició la captura. Safari/iPadOS puede no admitir compartir pantalla desde páginas web.');}
+}
+async function attach(){video.srcObject=stream;await video.play();rect={x:.12,y:.12,w:.76,h:.76};setActive(true);draw()}
+function stopStream(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;cancelAnimationFrame(raf);video.srcObject=null;setActive(false);ctx.clearRect(0,0,canvas.width,canvas.height);message('Transmisión detenida.')}
+function draw(){
+ if(!stream||video.readyState<2){raf=requestAnimationFrame(draw);return}
+ const vw=video.videoWidth,vh=video.videoHeight;
+ const sx=Math.max(0,Math.min(vw-1,rect.x*vw)),sy=Math.max(0,Math.min(vh-1,rect.y*vh));
+ const sw=Math.max(1,Math.min(vw-sx,rect.w*vw)),sh=Math.max(1,Math.min(vh-sy,rect.h*vh));
+ const scale=Math.min(canvas.width/sw,canvas.height/sh),dw=sw*scale,dh=sh*scale;
+ ctx.fillStyle='#05090f';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(video,sx,sy,sw,sh,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
+ outputStatus.textContent=`Recorte: ${Math.round(rect.w*100)}% del ancho × ${Math.round(rect.h*100)}% del alto`;
+ raf=requestAnimationFrame(draw)
+}
+function updateCrop(){
+ crop.style.left=(rect.x*100)+'%';crop.style.top=(rect.y*100)+'%';crop.style.width=(rect.w*100)+'%';crop.style.height=(rect.h*100)+'%';
+}
+function pointerDown(e){const h=e.target.closest('.handle');if(!h)return;e.preventDefault();dragging=h.dataset.corner;crop.setPointerCapture?.(e.pointerId)}
+function pointerMove(e){if(!dragging)return;const r=stage.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));const min=.08;
+ let left=rect.x,top=rect.y,right=rect.x+rect.w,bottom=rect.y+rect.h;
+ if(dragging.includes('l'))left=Math.min(x,right-min);if(dragging.includes('r'))right=Math.max(x,left+min);
+ if(dragging.includes('t'))top=Math.min(y,bottom-min);if(dragging.includes('b'))bottom=Math.max(y,top+min);
+ rect={x:Math.max(0,left),y:Math.max(0,top),w:Math.min(1,right)-Math.max(0,left),h:Math.min(1,bottom)-Math.max(0,top)};
+ updateCrop()
+}
+crop.addEventListener('pointerdown',pointerDown);crop.addEventListener('pointermove',pointerMove);
+crop.addEventListener('pointerup',()=>dragging=null);crop.addEventListener('pointercancel',()=>dragging=null);
+$('camera').onclick=startCamera;$('screen').onclick=startScreen;$('stop').onclick=stopStream;
+$('flip').onclick=()=>{facing=facing==='environment'?'user':'environment';startCamera()};
+$('reset').onclick=()=>{rect={x:.12,y:.12,w:.76,h:.76};updateCrop()};
+$('photo').onclick=()=>{const a=document.createElement('a');a.download='ipad-live-captura.png';a.href=canvas.toDataURL('image/png');a.click()};
+if(!navigator.mediaDevices?.getUserMedia){message('Este navegador no permite acceder a la cámara. Abrí la página desde Safari con HTTPS.')}
+</script>
+</body></html>
