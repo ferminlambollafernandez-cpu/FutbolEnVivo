@@ -19,6 +19,32 @@ main{max-width:1120px;margin:auto;padding:28px 16px 60px}.hero{display:flex;just
 .watchhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.watchteams{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0a111e;border:1px solid #2b3b54;border-radius:12px;padding:12px;margin-bottom:12px;font-weight:900}.watchteams strong{color:var(--yellow);font-size:25px}.videoBox{background:#03070c;aspect-ratio:16/9;border-radius:13px;overflow:hidden;display:grid;place-items:center;color:#8999af;text-align:center}.videoBox video{width:100%;height:100%;object-fit:contain}.cameraRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 footer{text-align:center;color:#64748b;font-size:11px;padding:22px}
 @media(max-width:680px){header{padding:12px 14px}.grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.toolbar{align-items:start;flex-direction:column}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}.section{padding:14px}}
+
+/* Identidad visual celeste y blanca */
+:root{--bg:#071522;--panel:#10263a;--panel2:#173650;--line:#28516d;--text:#f7fbff;--muted:#a9c2d5;--yellow:#75d5f5;--green:#46d6a0;--red:#ff6474}
+body{background:radial-gradient(ellipse at 50% -18%,#174e70 0,transparent 52%),linear-gradient(160deg,#071522,#0a1c2d 60%,#071522);background-attachment:fixed}
+header{background:rgba(5,19,32,.88);border-bottom:1px solid #28516d}
+.brandmark{background:linear-gradient(180deg,#8bdcf7 0 33%,#fff 33% 66%,#8bdcf7 66%);color:#082238;box-shadow:0 0 22px #75d5f533}
+.brand small{color:#9bcde3}
+.eyebrow{color:#83dcf7}
+.hero h1{letter-spacing:-1.5px}
+.livecount{border-color:#24694f;background:#102d28;color:#a4f3d2}
+button{background:#1c405a;transition:transform .16s ease,filter .16s ease,background .16s ease}
+button:active{transform:scale(.97)}
+.primary,.view,.filter.active{background:linear-gradient(135deg,#8cdef7,#b8edff);color:#082238;border-color:#8cdef7}
+.ghost,.filter{background:#142c40;border-color:#31536d;color:#c3d9e8}
+.danger{background:#492733;color:#ffe1e6}
+.match{background:linear-gradient(145deg,rgba(25,62,88,.96),rgba(12,31,48,.98));border-color:#2c5874;box-shadow:0 12px 30px #020b1380}
+.match:hover{border-color:#75d5f5;box-shadow:0 14px 34px #020b138c}
+.matchbottom,.watchteams{border-color:#2b4d66}
+.score{color:#f4fbff;text-shadow:0 0 18px #75d5f522}
+.section{background:linear-gradient(145deg,#10283d,#0d2032);border-color:#2b506b;box-shadow:0 12px 30px #020b1355}
+input,select{background:#091a29;border-color:#31536d}
+input:focus,select:focus{outline:2px solid #75d5f5;outline-offset:1px}
+.videoBox{border:1px solid #2a506a}
+footer{color:#86a8bf}
+@media(min-width:681px){.match{padding:20px}.section{padding:22px}}
+
 </style>
 </head>
 <body>
